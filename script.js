@@ -37,7 +37,6 @@ Customer.prototype.transferMoney= function(){
     this.payBalance=0;
 }
 
-//Bank
 function BankAccount(owner,balance){
     this.owner=owner;
     this.balance=balance;
@@ -48,17 +47,18 @@ BankAccount.prototype.setBankBalance= function(amount){
 }
 
 BankAccount.prototype.getLoan= function(amount){   
-    if(amount< this.balance*2){
+    if(amount<= this.balance*2){
         this.balance+=amount;
+        return true;
     }
     else{
         alert("We can't give you this amount");
+        return false;
     }
 }
 
 let customer = new Customer("John", 0);
 let bankAccount = new BankAccount(customer.name,0);
-
 
 function payToBank(){
     if(customer.payBalance>0){
@@ -86,20 +86,24 @@ document.getElementById("workBtn").addEventListener("click", function() {
     document.getElementById("bankBalanceLabel").innerHTML = bankAccount.balance + " SEK"
   });
 
- //Get loan btn should be disabled after giving loan. 
   document.getElementById("getLoanBtn").addEventListener("click", function() {
         let promptMsg = prompt("Enter an amount you want to loan?");
         if(isNumeric(promptMsg)){
             let loanAmount= stringNumberToInt(promptMsg);
-            getLoan(loanAmount);
+           if(getLoan(loanAmount)){
             document.getElementById("bankBalanceLabel").innerHTML = bankAccount.balance + " SEK"
-            let getLoanBtn =  document.getElementById("getLoanBtn");
-            getLoanBtn.setAttribute="disabled"
+             let getLoanBtn =  document.getElementById("getLoanBtn");
+             getLoanBtn.style.display= "none";
+           }
         }
         else{
             alert("Please enter a valid number!");
         }  
   });
+  
+  function getLoan(amount){
+    return bankAccount.getLoan(amount);
+ }
 
   function isNumeric(str) {
     if (typeof str != "string") return false 
@@ -107,21 +111,20 @@ document.getElementById("workBtn").addEventListener("click", function() {
            !isNaN(parseFloat(str)) 
   }
 
-function getLoan(amount){
-    bankAccount.getLoan(amount);
-}
-
 function buyLaptop(){
     const laptopOptions= document.querySelector("#chooseLaptop");
     let laptopToBuy   =laptopOptions.value-1;
     if(laptops[laptopToBuy].Price<=bankAccount.balance){
-        bankAccount.setBankBalance(-laptops[laptopToBuy].Price)
-        console.log("Now you can buy it")
+        bankAccount.setBankBalance(-laptops[laptopToBuy].Price);
+        let getLoanBtn =  document.getElementById("getLoanBtn");
+        getLoanBtn.style.display= "block";
+        alert("congratulations! You own "+ laptops[laptopToBuy].name + " now!")
     }
     else{
-        alert("Try to get a better a loan or choose a cheaper komputer!")
+        alert("Your balance is not enough to buy this laptop!")
     }
 }
+
 const showLaptopOptions=()=>{
     const laptopOptions= document.querySelector("#chooseLaptop");
     countValue=0;
@@ -132,35 +135,37 @@ const showLaptopOptions=()=>{
         newLaptopOption.innerHTML= laptops[i].name;
 
         laptopOptions.appendChild(newLaptopOption)
-
       }         
 }
 
 const chooseLaptop=()=> {
     const selectLaptop = document.querySelector('#chooseLaptop');
     let choosenLaptop=  selectLaptop.value;
-
-    showLaptopInfoInCard(stringNumberToInt(choosenLaptop)-1)
-    showHideLaptopInfoCard(stringNumberToInt(choosenLaptop)-1)
+    if(choosenLaptop>0){
+        showLaptopInfoInCard(stringNumberToInt(choosenLaptop)-1)
+        showLaptopInfoInBox(stringNumberToInt(choosenLaptop)-1)
+    } 
+    else if(choosenLaptop==="Choose laptop..."){
+        const readMore = document.querySelector('#read-more');
+        readMore.style.display ="none";
+    } 
   }
 
   const stringNumberToInt=(stringNumber)=> {
         try{
-           return parseInt(stringNumber);
+           return Number(stringNumber);
         }
         catch{
-            console.log("The given value is not a number")
+           alert("The given value is not a number!")
         }
   }
 
   const showLaptopInfoInCard=(selectedLaptop)=> {  
-    const laptopFeaturesInBox = document.querySelector('#laptop-features-label');
     const laptopNameInCard = document.querySelector('#laptop-name');
     const laptopFeaturesInCard = document.querySelector('#laptop-features');
     const laptopPriceInCard = document.querySelector('#laptop-price');
     const laptopImgInCard = document.querySelector('#laptop-image');  
 
-    laptopFeaturesInBox.innerHTML= laptops[selectedLaptop].features;
     laptopNameInCard.innerHTML= laptops[selectedLaptop].name;
     laptopFeaturesInCard.innerHTML= laptops[selectedLaptop].features;
     laptopPriceInCard.innerHTML= laptops[selectedLaptop].Price + " SEK"
@@ -168,8 +173,13 @@ const chooseLaptop=()=> {
 
   }
 
-  const showHideLaptopInfoCard=(selectedLaptop)=> {
-    const laptopInfoCard = document.querySelector('#laptop-info-card');
+  const showLaptopInfoInBox=(selectedLaptop)=> {  
+    const laptopFeaturesInBox = document.querySelector('#laptop-features-label');
+    const readMore = document.querySelector('#read-more');
+
+    laptopFeaturesInBox.innerHTML= laptops[selectedLaptop].features;
+    readMore.style.display="block"
+
   }
 
   showLaptopOptions()
